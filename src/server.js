@@ -1,10 +1,10 @@
 const knex = require('knex');
 const app = require('./app');
-const {PORT}=require('./config');
+const {PORT,DATABASE_URL}=require('./config');
 
 const db = knex({
   client:'pg',
-  connection:process.env.NODE_ENV==='test'?process.env.TEST_DB_URL:process.env.DB_URL,
+  connection:DATABASE_URL
 });
 
 app.set('db',db);
