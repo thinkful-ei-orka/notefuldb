@@ -44,11 +44,17 @@ notefulRouter.post('/folders',(req,res,next)=>{
 
 notefulRouter.delete('/notes/:noteid',(req,res,next)=>{
   const knexInstance=req.app.get('db');
-  notefulService.deleteNote(knexInstance,req.params.noteid)
-    .then(()=>res.status(204).end())
-    .catch(next);
+  notefulService.getNoteById(knexInstance,req.params.noteid)
+    .then(note=>{
+      if(!note){
+        return res.status(404).json({
+          error:{message:'Note does not exist'}
+        });
+      }
+      notefulService.deleteNote(knexInstance,note.id)
+        .then(()=>res.status(204).end())
+        .catch(next);
+    });
 });
-
-//error in the function above, unsure of source
 
 module.exports = notefulRouter;
