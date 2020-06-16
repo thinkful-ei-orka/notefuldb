@@ -15,10 +15,18 @@ notefulRouter.get('/folders',(req,res,next)=>{
     .then(folders=>{res.json(folders);})
     .catch(next);
 });
+
 notefulRouter.post('/notes',(req,res,next)=>{
   const knexInstance=req.app.get('db');
-  const {name,content,created,folderid}=req.body;
-  const newNote={name,content,created,folderid};
+  const {name,content,folderid}=req.body;
+  const newNote={name,content,folderid};
+  if([name,content,folderid].some(data=>!data)){
+    let result;
+    if(!name){result = 'name';} 
+    else if(!content){result = 'content';}
+    else if(!folderid){result = 'folderid';}
+    return res.status(400).send(`Value for ${result} was not provided`);
+  }
   notefulService.insertNote(knexInstance,newNote)
     .then(note=>res.status(201).location(`/folders/${note.folderid}`).json({
       id: note.id,
@@ -34,6 +42,9 @@ notefulRouter.post('/folders',(req,res,next)=>{
   const knexInstance=req.app.get('db');
   const {name} = req.body;
   const newFolder = {name};
+  if(!name){ 
+    return res.status(400).send('Value for name was not provided');
+  }
   notefulService.insertFolder(knexInstance,newFolder)
     .then(folder=>res.status(201).location(`/folder/${folder.id}`).json({
       id: folder.id,
