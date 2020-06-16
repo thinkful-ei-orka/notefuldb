@@ -4,12 +4,6 @@ const app = require('../src/app');
 const { makeNoteArray, makeFolderArray } = require('./noteful-fixtures');
 const supertest = require('supertest');
 
-/*
-XSS
-delete notes
--deletes the correct note
--display error if the note doesn't exist
-*/
 
 describe('Noteful Endpoints', function () {
   let db;
@@ -99,11 +93,11 @@ describe('Noteful Endpoints', function () {
             expect(res.body).to.have.property('id');
             expect(res.body.name).to.eql(newFolder.name);
           })
-          .then(res => {
+          .then(res =>
             supertest(app)
-              .get(`/folders/${res.body.id}`)
-              .expect(res.body);
-          });
+              .get('/folders')
+              .expect([res.body])
+          );
       });
     });
   });
@@ -113,7 +107,7 @@ describe('Noteful Endpoints', function () {
     const keys = Object.keys(newNote);
     keys.forEach(key => {
       it(`returns an error if the ${key} field is missing`, () => {
-        let brokenNote = {name: 'new note', content: 'new content', folderid:3};
+        let brokenNote = { name: 'new note', content: 'new content', folderid: 3 };
         delete brokenNote[key];
         return supertest(app)
           .post('/notes')
@@ -122,7 +116,7 @@ describe('Noteful Endpoints', function () {
           .expect(`Value for ${key} was not provided`);
       });
     });
-    context.only('creates a new note and adds it to the database', () => {
+    context('creates a new note and adds it to the database', () => {
       const testFolders = makeFolderArray();
       beforeEach('insert folders', () => {
         return db
@@ -145,15 +139,50 @@ describe('Noteful Endpoints', function () {
           })
           .then(res =>
             supertest(app)
-              .get(`/notes/${res.body.id}`)
-              .then(response=>
-                expect(JSON.parse(response)).to.eql(res.body))
+              .get(`/notes`)
+              .expect([res.body])
+          );
+      });
+    });
+    
+  });
+
+  describe('DELETE /notes/:noteid', () => {
+    const deleteid = 2;
+    it('returns an error if the note doesn\'t exist', () => {
+      return supertest(app)
+        .delete(`/notes/${deleteid}`)
+        .expect(404)
+        .expect({ error: { message: 'Note does not exist' } });
+    });
+    context('notes exist in the database', () => {
+      const testNotes = makeNoteArray();
+      const testFolders = makeFolderArray();
+      beforeEach('insert folders and notes', () => {
+        return db
+          .into('folders')
+          .insert(testFolders)
+          .then(() => {
+            return db
+              .into('notes')
+              .insert(testNotes);
+          });
+      });
+      it('deletes the desired note', () => {
+        return supertest(app)
+          .get('/notes')
+          .then(result => result.body.filter(note => note.id !== deleteid))
+          .then(result =>
+            supertest(app)
+              .delete(`/notes/${deleteid}`)
+              .expect(204)
+              .then(res =>
+                supertest(app)
+                  .get('/notes')
+                  .expect(result)
+              )
           );
       });
     });
   });
-
-  
-
-
 });
