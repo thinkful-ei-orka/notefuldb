@@ -11,16 +11,16 @@ notefulRouter.get('/notes',(req,res,next)=>{
 });
 notefulRouter.get('/folders',(req,res,next)=>{
   const knexInstance = req.app.get('db');
-  notefulService.getAllNotes(knexInstance)
+  notefulService.getAllFolders(knexInstance)
     .then(folders=>{res.json(folders);})
     .catch(next);
 });
-notefulRouter.post('/add-note',(req,res,next)=>{
+notefulRouter.post('/notes',(req,res,next)=>{
   const knexInstance=req.app.get('db');
   const {name,content,created,folderid}=req.body;
   const newNote={name,content,created,folderid};
   notefulService.insertNote(knexInstance,newNote)
-    .then(note=>res.status(201).location(`/note/${note.id}`).json({
+    .then(note=>res.status(201).location(`/folders/${note.folderid}`).json({
       id: note.id,
       name: xss(note.name),
       content: xss(note.content),
@@ -41,5 +41,14 @@ notefulRouter.post('/folders',(req,res,next)=>{
     }))
     .catch(next);
 });
+
+notefulRouter.delete('/notes/:noteid',(req,res,next)=>{
+  const knexInstance=req.app.get('db');
+  notefulService.deleteNote(knexInstance,req.params.noteid)
+    .then(()=>res.status(204).end())
+    .catch(next);
+});
+
+//error in the function above, unsure of source
 
 module.exports = notefulRouter;

@@ -48,7 +48,7 @@ const notefulService = {
   },*/
   deleteNote(knex,id){
     return knex('notes')
-      .where({ id })
+      .where({id})
       .delete();
   },
   updateNote(knex,id,newNoteFields){
