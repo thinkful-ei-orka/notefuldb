@@ -31,7 +31,7 @@
     "chai": "^4.2.0",
     "dotenv": "^8.2.0",
     "migrate": "^1.6.2",
-    "mocha": "^7.2.0",
+    "mocha": "^10.2.0",
     "nodemon": "^2.0.4",
     "postgrator-cli": "^3.2.0",
     "supertest": "^4.0.2"
